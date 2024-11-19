@@ -1,107 +1,222 @@
-// boilerplate express app
-// copying from activity 23
+import inquirer from "inquirer";
+import database from "./db/index.js";
 
-// typescript! from Module 9, Activity 21
-import express, { type Request, type Response } from 'express';
+const db = new database();
 
-import { QueryResult } from 'pg';
-import { pool, connectToDb } from './connection.js';
-// import { connectToDb } from './connection.js';
+// Utility function to display results in a table
+function displayResults(rows: any[]) {
+  console.log(rows);
+  console.table(rows);
+}
 
-import { addMovie } from './movieService.js';
+function mainMenu() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "choice",
+        message: "What would you like to do?",
+        choices: [
+          { name: "View all departments", value: "viewdepartments" },
+          { name: "View all roles", value: "viewroles" },
+          { name: "View all employees", value: "viewemployees" },
+          { name: "Add a department", value: "adddepartment" },
+          { name: "Add a role", value: "addrole" },
+          { name: "Add an employee", value: "addemployee" },
+          { name: "Update an employee's role", value: "updatemployeerole" },
+          { name: "Exit", value: "byebyeexit"},
+        ],
+      },
+    ])
+    .then((response) => {
+      switch (response.choice) {
+        case "viewdepartments":
+          viewdepartments();
+          break;
+        case "viewroles":
+          viewroles();
+          break;
+        case "viewemployees":
+          viewemployees();
+          break;
+        case "adddepartment":
+          adddepartment();
+          break;
+        case "addrole":
+          addrole();
+          break;
+        case "addemployee":
+          addemployee();
+          break;
+        case "updatemployeerole":
+          updatemployeerole();
+          break;
+      }
+    });
+}
 
-await connectToDb();
+function viewdepartments() {
+  db.finddep()
+    .then(({ rows }) => {
+      displayResults(rows);
+      mainMenu();
+    })
+    .catch((err) => {
+      console.error("Error fetching departments:", err);
+      mainMenu();
+    });
+}
 
-const PORT = process.env.PORT || 3001;
-const app = express();
+function viewroles() {
+  db.findrole()
+    .then(({ rows }) => {
+      displayResults(rows);
+      mainMenu();
+    })
+    .catch((err) => {
+      console.error("Error fetching roles:", err);
+      mainMenu();
+    });
+}
 
-// Express middleware
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+function viewemployees() {
+  db.findemps()
+    .then(({ rows }) => {
+      displayResults(rows);
+      mainMenu();
+    })
+    .catch((err) => {
+      console.error("Error fetching employees:", err);
+      mainMenu();
+    });
+}
 
+function adddepartment() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "department_name",
+        message: "What is the name of the department?",
+      },
+    ])
+    .then((department) => {
+      db.adddepartment(department)
+        .then(({ rows }) => {
+          console.log("Department added successfully");
+          displayResults(rows);
+          mainMenu();
+        })
+        .catch((err) => {
+          console.error("Error adding department:", err);
+          mainMenu();
+        });
+    });
+}
 
-// GET all movies
-app.get('/api/movies', (_req: Request, res: Response) => {
-  console.log('getting all the movies');
-  
-  pool.query('SELECT * FROM movies', (err: Error, result: QueryResult) => {
-    if (err) {
-      console.log(err);
-      res.status(500).end();
-    } else if (result) {
-      // console.log(result.rows);
-      console.table(result.rows);
+function addrole() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "title",
+        message: "What is the name of the role?",
+      },
+      {
+        type: "input",
+        name: "salary",
+        message: "What is the salary of the role?",
+      },
+      {
+        type: "input",
+        name: "department_id",
+        message: "Which department does the role belong to?",
+      },
+    ])
+    .then((role) => {
+      db.addroles(role)
+        .then(({rows}) => {
+          console.log("Role added successfully");
+          displayResults(rows);
+          mainMenu();
+        })
+        .catch((err) => {
+          console.error("Error adding role:", err);
+          mainMenu();
+        });
+    });
+}
 
-      res.status(200).json(result.rows);
-    }
-  });
-  
-  // res.status(201).send("TODO: Get movies");
-  // DONE!
-})
+function addemployee() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "first_name",
+        message: "What is the employee's first name?",
+      },
+      {
+        type: "input",
+        name: "last_name",
+        message: "What is the employee's last name?",
+      },
+      {
+        type: "input",
+        name: "role_id",
+        message: "What is the employee's role?",
+      },
+      {
+        type: "input",
+        name: "manager_id",
+        message: "Who is the employee's manager?",
+      },
+    ])
+    .then((employee) => {
+      db.addemployee(employee)
+        .then(({ rows }) => {
+          console.log("Employee added successfully");
+          displayResults(rows);
+          mainMenu();
+        })
+        .catch((err) => {
+          console.error("Error adding employee:", err);
+          mainMenu();
+        });
+    });
+}
 
-// GET all review
-app.get('/api/movie-reviews', (_req: Request, res: Response) => {
-  console.log('getting all the movie reviews');
+function updatemployeerole() {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "first_name",
+        message: "What is the employee's first name?",
+      },
+      {
+        type: "input",
+        name: "last_name",
+        message: "What is the employee's last name?",
+      },
+      {
+        type: "input",
+        name: "role_id",
+        message: "Which role do you want to assign to the selected employee?",
+      },
+    ])
+    .then((updateInfo) => {
+      db.updatemployeerole(updateInfo)
+        .then((rows: any) => {
+          console.log("Employee role updated successfully");
+          displayResults(rows);
+          mainMenu();
+        })
+        .catch((err: any) => {
+          console.error("Error updating employee role:", err);
+          mainMenu();
+        });
+    });
+}
 
-  pool.query('SELECT * FROM reviews', (err: Error, result: QueryResult) => {
-    if (err) {
-      console.log(err);
-      res.status(500).end();
-    } else if (result) {
-      // console.log(result.rows);
-      res.status(200).json(result.rows);
-    }
-  });
-
-  // res.status(202).send("TODO: Get movie reviews");
-})
-
-// POST to add-movie to create a new movie
-app.post('/api/add-movie', (req: Request, res: Response) => {
-  console.log('adding a movie');
-
-  const movie_name = req.body.movie_name;
-
-  return addMovie(movie_name, pool, res);
-
-
-  // res.status(204).send("TODO: Add a movie");
-});
-
-// DELETE to delete a movie
-app.delete('/api/movie/:id', (req: Request, res: Response) => {
-  console.log(`deleting movie ${req.params.id}`);
-
-  res.status(203).send("TODO: DELETE a movie");
-})
-
-// Hardcoded query: DELETE FROM course_names WHERE id = 3;
-// const recordToDelete = 3;
-// const recordToDeleteSoBad = `3; drop database student_db;`;
-
-// pool.query(`DELETE FROM course_names WHERE id = $1`, [recordToDelete], (err: Error, result: QueryResult) => {
-//   if (err) {
-//     console.log(err);
-//   } else {
-//     console.log(`${result.rowCount} row(s) deleted!`);
-//   }
-// });
-
-// Query database
-// pool.query('SELECT * FROM course_names', (err: Error, result: QueryResult) => {
-//   if (err) {
-//     console.log(err);
-//   } else if (result) {
-//     console.log(result.rows);
-//   }
-// });
-
-// Default response for any other request (Not Found)
-app.use((_req, res) => {
-  res.status(418).end();
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start the app
+mainMenu();
