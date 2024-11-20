@@ -24,7 +24,7 @@ export default class database {
   }
   async finddep() {
     return this.query(
-      "SELECT department_name,title,salary FROM department  d LEFT JOIN role r ON d.id = r.department_id ORDER BY d.department_name;"
+      "SELECT id, department_name FROM department"
     );
   }
 
@@ -46,14 +46,15 @@ export default class database {
 
 async addemployee(employee: any) {
   return this.query(
-    "INSERT INTO role (title,salary,department_id) values ($1,$2,$3)",
-    [employee.first_name, employee.last_name, employee.role_id, employee.manager_id]
-  );
+      "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4);",
+      [employee.first_name, employee.last_name, employee.role_id, employee.manager_id]
+    );
 }
+
 async updatemployeerole(employee: any) {
   return this.query(
-    "INSERT INTO role (title,salary,department_id) values ($1,$2,$3)",
-    [employee.first_name, employee.last_name, employee.role_id]
+    "UPDATE employee SET role_id = $1 WHERE id = $2",
+    [employee.role_id, employee.id]
   );
 }
 }
