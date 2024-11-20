@@ -1,7 +1,7 @@
 ![Static Badge](https://img.shields.io/badge/MIT-license-yellow)
 
 ## Employee-Tracker Video
-View here for the video: https://drive.google.com/file/d/1AdqHSuW9q2XMYqxqmZXiLqN6ODnbJPeQ/view?usp=sharing
+View here for the video: https://drive.google.com/file/d/1Oy_ll3kVZZbpbf4YkpMYheb9_bzsmXrO/view?usp=drive_link
 
 ### Built With
 
